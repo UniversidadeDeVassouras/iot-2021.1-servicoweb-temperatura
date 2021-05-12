@@ -19,9 +19,9 @@ def list_temperatura():
 @app.route("/temperatura", methods=['POST'])
 def add_temperatura():
     id = len(temperatura_list) + 1
-    data = datetime.strptime(request.json['data'], '%d/%m/%Y %H:%M')
-    dispositivo_id = int(request.json['dispositivo_id'])
-    valor = float(request.json['valor'])
+    data = datetime.strptime(request.json.get('data', None), '%d/%m/%Y %H:%M')
+    dispositivo_id = int(request.json.get('dispositivo_id', None))
+    valor = float(request.json.get('valor', None))
     temperatura = Temperatura(id, dispositivo_id, valor, data)
     temperatura_list.append(temperatura)
     return temperatura.toDict(), 201
@@ -46,8 +46,14 @@ def edit_temperatura(id: int):
             temperatura.valor = valor
             temperatura.data = data
             return temperatura.toDict()
-    return jsonify({"error": "Temperatura não encontrada"}), 404
+    return jsonify({"message": "Temperatura não encontrada"}), 404
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/temperatura/<int:id>", methods=['DELETE'])
+def excluir(id: int):
+    # del (temperatura_list[id - 1])
+    for temperatura in temperatura_list:
+        if temperatura.id == id:
+            temperatura_list.remove(temperatura)
+            return jsonify({"message": 'Temperatura removida com sucesso'}), 200
+    return jsonify({"message": 'Temperatura não encontrada para ser removida'}), 404
